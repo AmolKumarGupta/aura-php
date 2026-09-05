@@ -25,9 +25,7 @@ function App() {
 	return (
 		<>
 			<section id="text-center">
-				<Button
-					onClick={() => setCount((count) => count + 1)}
-				>
+				<Button onClick={() => setCount((count) => count + 1)}>
 					Count is {count}
 				</Button>
 			</section>
