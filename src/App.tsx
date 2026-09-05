@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "./App.css";
 import { getPHPLoaderModule } from "@php-wasm/web-8-4";
 import { loadPHPRuntime, PHP } from "@php-wasm/universal";
 
@@ -24,10 +23,10 @@ function App() {
 
 	return (
 		<>
-			<section id="center">
+			<section id="text-center">
 				<button
 					type="button"
-					className="counter"
+					className="bg-red-400"
 					onClick={() => setCount((count) => count + 1)}
 				>
 					Count is {count}
