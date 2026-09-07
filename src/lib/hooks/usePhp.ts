@@ -20,8 +20,8 @@ export function usePhp() {
 				setBootProgress(0.05);
 				const runtimeId = await loadPHPRuntime(loaderModule);
 
-        if (cancelled) {
-          return
+				if (cancelled) {
+					return;
 				}
 				setBootProgress(0.1);
 				const phpInstance = new PHP(runtimeId);
