@@ -1,222 +1,108 @@
-import { useRevealGroup, revealStyle } from "@/lib/hooks/useReveal";
-import { tokens } from "./runtime/tokens";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { revealClass, useRevealGroup } from "@/lib/hooks/useReveal";
+import { buttonVariants } from "@/components/ui/button";
+
+const STATS: [string, string][] = [
+	["runtime", "PHP 8.4.12"],
+	["framework", "Laravel 12.x"],
+	["storage", "SQLite 3.49"],
+	["artifact", "8.9 MB"],
+];
 
 export default function Hero() {
 	const { visible, setRef } = useRevealGroup(4, [0, 80, 160, 220]);
 
 	return (
-		<header
-			id="top"
-			style={{
-				position: "relative",
-				padding: "158px 0 0",
-				background: tokens.bg,
-				color: tokens.text,
-				fontFamily: tokens.sans,
-				overflowX: "clip",
-			}}
-		>
+		<header id="top" className="relative overflow-x-clip pt-[158px]">
 			{/* dotted backdrop */}
 			<div
 				aria-hidden
-				style={
-					{
-						content: '""',
-						position: "absolute",
-						inset: "0 0 auto",
-						height: 640,
-						backgroundImage:
-							"radial-gradient(rgba(235,229,220,.13) 1px,transparent 1px)",
-						backgroundSize: "26px 26px",
-						opacity: 0.24,
-						WebkitMaskImage: "linear-gradient(#000 0%,transparent 92%)",
-						maskImage: "linear-gradient(#000 0%,transparent 92%)",
-						pointerEvents: "none",
-					} as React.CSSProperties
-				}
+				className="pointer-events-none absolute inset-x-0 top-0 h-[640px] opacity-25 [background-image:radial-gradient(color-mix(in_oklch,var(--foreground)_13%,transparent)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:linear-gradient(#000_0%,transparent_92%)]"
 			/>
-			<div
-				style={{
-					width: "min(1200px,calc(100% - 48px))",
-					margin: "0 auto",
-					position: "relative",
-				}}
-			>
+			<div className="relative mx-auto w-[min(1200px,calc(100%-48px))]">
 				<h1
 					ref={setRef(0) as React.Ref<HTMLHeadingElement>}
-					style={{
-						...revealStyle(visible[0]),
-						fontFamily: tokens.serif,
-						fontWeight: 400,
-						fontSize: "clamp(52px,7.4vw,98px)",
-						lineHeight: 0.98,
-						letterSpacing: "-.015em",
-						position: "relative",
-						margin: 0,
-					}}
+					className={cn(
+						revealClass(visible[0]),
+						"relative m-0 font-serif text-[clamp(52px,7.4vw,98px)] leading-[0.98] font-normal tracking-[-0.015em]",
+					)}
 				>
 					PHP, compiled.
 					<br />
-					<em style={{ fontStyle: "italic" }}>
-						The server, <span style={{ color: tokens.accent }}>deleted.</span>
+					<em className="italic">
+						The server, <span className="text-primary">deleted.</span>
 					</em>
 				</h1>
 
 				<p
 					ref={setRef(1) as React.Ref<HTMLParagraphElement>}
-					style={{
-						...revealStyle(visible[1]),
-						maxWidth: 580,
-						color: tokens.muted,
-						fontSize: 17,
-						lineHeight: 1.68,
-						marginTop: 30,
-						position: "relative",
-					}}
+					className={cn(
+						revealClass(visible[1]),
+						"relative mt-[30px] max-w-[580px] text-[17px] leading-[1.68] text-muted-foreground",
+					)}
 				>
-					LaraCloud compiles the entire Laravel stack — the PHP runtime, the
+					Aura compiles the entire Laravel stack — the PHP runtime, the
 					framework, your code and a SQLite volume — into one static WebAssembly
 					artifact. Requests execute inside the browser tab, at memory speed.{" "}
-					<strong style={{ color: tokens.text, fontWeight: 500 }}>
+					<strong className="font-medium text-foreground">
 						Nothing leaves the machine.
 					</strong>
 				</p>
 
 				<div
 					ref={setRef(2) as React.Ref<HTMLDivElement>}
-					style={{
-						...revealStyle(visible[2]),
-						display: "flex",
-						gap: 14,
-						marginTop: 38,
-						flexWrap: "wrap",
-						position: "relative",
-					}}
+					className={cn(
+						revealClass(visible[2]),
+						"relative mt-[38px] flex flex-wrap gap-[14px]",
+					)}
 				>
 					<a
 						href="#runtime"
 						id="ctaLaunch"
-						style={{
-							display: "inline-flex",
-							alignItems: "center",
-							gap: 9,
-							fontSize: 15,
-							fontWeight: 600,
-							padding: "14px 22px",
-							borderRadius: 8,
-							textDecoration: "none",
-							background: tokens.accent,
-							color: "#140B09",
-							transition:
-								"transform .2s cubic-bezier(.22,.75,.2,1),background .2s",
-						}}
+						className={cn(
+							buttonVariants({ size: "lg" }),
+							"h-auto gap-[9px] rounded-lg px-[22px] py-[14px] text-[15px] font-semibold",
+						)}
 					>
 						Launch the runtime
-						<svg
-							width={15}
-							height={15}
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth={2}
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<path d="M7 17 17 7M7 7h10v10" />
-						</svg>
+						<ArrowUpRight className="size-[15px]" />
 					</a>
 					<a
 						href="#runtime"
-						style={{
-							display: "inline-flex",
-							alignItems: "center",
-							gap: 9,
-							fontSize: 15,
-							fontWeight: 600,
-							padding: "14px 22px",
-							borderRadius: 8,
-							textDecoration: "none",
-							border: `1px solid ${tokens.line2}`,
-							color: tokens.text,
-							transition: "border-color .2s,background .2s",
-						}}
+						className={cn(
+							buttonVariants({ size: "lg", variant: "outline" }),
+							"h-auto gap-[9px] rounded-lg px-[22px] py-[14px] text-[15px] font-semibold",
+						)}
 					>
 						How virtualization works
-						<svg
-							width={15}
-							height={15}
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth={2}
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<path d="M12 5v14m7-7-7 7-7-7" />
-						</svg>
+						<ArrowDown className="size-[15px]" />
 					</a>
 				</div>
 
 				<div
 					ref={setRef(3) as React.Ref<HTMLDivElement>}
-					style={{
-						...revealStyle(visible[3]),
-						display: "flex",
-						flexWrap: "wrap",
-						marginTop: 60,
-						position: "relative",
-						fontFamily: tokens.mono,
-						fontSize: 11,
-						letterSpacing: ".1em",
-						textTransform: "uppercase",
-						color: tokens.faint,
-					}}
+					className={cn(
+						revealClass(visible[3]),
+						"relative mt-[60px] flex flex-wrap font-mono text-[11px] tracking-[0.1em] text-muted-foreground uppercase",
+					)}
 				>
-					{[
-						["runtime", "PHP 8.4.12"],
-						["framework", "Laravel 12.x"],
-						["storage", "SQLite 3.49"],
-						["artifact", "8.9 MB"],
-					].map(([k, v], i, arr) => (
+					{STATS.map(([k, v]) => (
 						<div
 							key={k}
-							style={{
-								padding: "6px 24px 6px 0",
-								margin: "6px 24px 6px 0",
-								borderRight:
-									i === arr.length ? "0" : `1px solid ${tokens.line}`,
-							}}
+							className="my-[6px] mr-6 border-r border-border py-[6px] pr-6"
 						>
 							{k}
-							<b style={{ color: tokens.text, fontWeight: 500, marginLeft: 7 }}>
-								{v}
-							</b>
+							<b className="ml-[7px] font-medium text-foreground">{v}</b>
 						</div>
 					))}
-					<div style={{ padding: "6px 24px 6px 0", margin: "6px 24px 6px 0" }}>
+					<div className="my-[6px] py-[6px] pr-6">
 						network hops
-						<b style={{ color: tokens.accent, fontWeight: 500, marginLeft: 7 }}>
-							0
-						</b>
+						<b className="ml-[7px] font-medium text-primary">0</b>
 					</div>
 				</div>
 
-				<div
-					className="hidden xl:block"
-					style={{
-						position: "absolute",
-						right: -64,
-						top: 340,
-						writingMode: "vertical-rl",
-						fontFamily: tokens.mono,
-						fontSize: 10,
-						letterSpacing: ".34em",
-						color: tokens.dim,
-						borderLeft: `1px solid ${tokens.line}`,
-						paddingLeft: 14,
-						textTransform: "uppercase",
-					}}
-				>
+				<div className="absolute top-[340px] -right-16 hidden border-l border-border py-0 pr-0 pl-[14px] font-mono text-[10px] tracking-[0.34em] text-muted-foreground/60 uppercase [writing-mode:vertical-rl] xl:block">
 					wasm32-wasi · single process · zero i/o
 				</div>
 			</div>

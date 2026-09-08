@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { tokens } from "./runtime/tokens";
+import { cn } from "@/lib/utils";
 import { ENTRY_Y, layerCenterY } from "./runtime/types";
 import type { ConsoleLine, RouteStep } from "./runtime/types";
 import StackDiagram from "./runtime/StackDiagram";
@@ -85,12 +85,11 @@ function resolveRoute(path: string): {
 }
 
 function normalize(v: string): string {
-	let s = (v || "")
+	const s = (v || "")
 		.trim()
 		.replace(/^https?:\/\//, "")
 		.replace(/^localhost:8080/, "");
-	if (!s.startsWith("/")) s = `/${s}`;
-	return s === "" ? "/" : s;
+	return s === "" || s === "/" ? "/" : s.startsWith("/") ? s : `/${s}`;
 }
 
 let lineId = 0;
@@ -214,9 +213,9 @@ export default function RuntimeMachine() {
 			}
 			setPacketLabel(R.status >= 400 ? String(R.status) : "200 OK");
 			setPacketOk(R.status < 400);
-		for (let i = R.stopLayer; i >= 0; i -= 1) {
-			await animatePacketTo(layerCenterY(i), 150);
-		}
+			for (let i = R.stopLayer; i >= 0; i -= 1) {
+				await animatePacketTo(layerCenterY(i), 150);
+			}
 			simRef.current += 0.2;
 			pushLine(
 				fmtT(),
@@ -256,7 +255,7 @@ export default function RuntimeMachine() {
 	useEffect(() => {
 		let cancelled = false;
 		(async () => {
-			pushLine("", "", "$ laracloud up", "", "req");
+			pushLine("", "", "$ aura up", "", "req");
 			pushLine("", "", "· resolving php-wasm @ 8.4.12");
 			setBootMeta("downloading php-wasm… 6.2 MB");
 			// progress bar 0 -> 1 over 1400ms
@@ -323,119 +322,47 @@ export default function RuntimeMachine() {
 	);
 
 	return (
-		<div
-			style={{ background: tokens.bg, color: tokens.text, paddingBottom: 40 }}
-		>
-			<div style={{ width: "min(1200px,calc(100% - 48px))", margin: "0 auto" }}>
-				<div
-					id="runtime"
-					style={{ marginTop: 84, position: "relative", scrollMarginTop: 90 }}
-				>
-					<div
-						style={{
-							display: "flex",
-							justifyContent: "space-between",
-							alignItems: "center",
-							fontFamily: tokens.mono,
-							fontSize: 10.5,
-							letterSpacing: ".14em",
-							textTransform: "uppercase",
-							color: tokens.faint,
-							marginBottom: 12,
-							gap: 16,
-							flexWrap: "wrap",
-						}}
-					>
+		<div className="bg-background pb-10 text-foreground">
+			<div className="mx-auto w-[min(1200px,calc(100%-48px))]">
+				<div id="runtime" className="relative mt-[84px] scroll-mt-[90px]">
+					<div className="mb-3 flex flex-wrap items-center justify-between gap-4 font-mono text-[10.5px] tracking-[0.14em] text-muted-foreground uppercase">
 						<span>figure 01 — runtime cross-section</span>
-						<span
-							style={{
-								display: "flex",
-								gap: 18,
-								alignItems: "center",
-								letterSpacing: ".1em",
-							}}
-						>
+						<span className="flex items-center gap-[18px] tracking-[0.1em]">
 							<span>
-								<i
-									style={{
-										display: "inline-block",
-										width: 7,
-										height: 7,
-										borderRadius: "50%",
-										marginRight: 7,
-										verticalAlign: 1,
-										background: tokens.green,
-									}}
-								/>
+								<i className="mr-[7px] inline-block size-[7px] rounded-full bg-chart-3 align-[1px]" />
 								ready
 							</span>
 							<span>
-								<i
-									style={{
-										display: "inline-block",
-										width: 7,
-										height: 7,
-										borderRadius: "50%",
-										marginRight: 7,
-										verticalAlign: 1,
-										background: tokens.accent,
-									}}
-								/>
+								<i className="mr-[7px] inline-block size-[7px] rounded-full bg-primary align-[1px]" />
 								executing
 							</span>
 							<span>≈ 1200× slow motion</span>
 						</span>
 					</div>
 
-					<div
-						style={{
-							border: `1px solid ${tokens.line}`,
-							borderRadius: 12,
-							background: tokens.panel,
-							overflow: "hidden",
-						}}
-					>
+					<div className="overflow-hidden rounded-xl border border-border bg-card">
 						{/* head */}
-						<div
-							style={{
-								height: 46,
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "space-between",
-								padding: "0 16px",
-								borderBottom: `1px solid ${tokens.line}`,
-								fontFamily: tokens.mono,
-								fontSize: 11,
-							}}
-						>
-							<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+						<div className="flex h-[46px] items-center justify-between border-b border-border px-4 font-mono text-[11px]">
+							<div className="flex items-center gap-2.5">
 								<span
-									style={{
-										width: 7,
-										height: 7,
-										borderRadius: "50%",
-										background: booted
-											? tokens.green
+									className={cn(
+										"size-[7px] rounded-full transition-colors duration-300",
+										booted
+											? "bg-chart-3"
 											: busy
-												? tokens.accent
-												: tokens.dim,
-										transition: "background .3s",
-									}}
+												? "animate-pulse bg-primary"
+												: "bg-muted-foreground/40",
+									)}
 								/>
-								laracloud runtime
-								<span style={{ color: tokens.dim, marginLeft: 2 }}>v1.4.2</span>
+								aura runtime
+								<span className="ml-0.5 text-muted-foreground/70">v1.4.2</span>
 							</div>
-							<div
-								className="hidden sm:flex"
-								style={{ color: tokens.faint, gap: 18 }}
-							>
+							<div className="hidden gap-[18px] text-muted-foreground sm:flex">
 								<span>
 									php 8.4.12 · wasm32-wasi ·{" "}
-									<b style={{ color: tokens.muted, fontWeight: 500 }}>
-										42 MB RSS
-									</b>
+									<b className="font-medium text-muted-foreground">42 MB RSS</b>
 								</span>
-								<b style={{ color: tokens.muted, fontWeight: 500 }}>
+								<b className="font-medium text-muted-foreground">
 									req {String(reqN).padStart(3, "0")}
 									{reqN > 0 ? ` · avg ${avgMs} ms` : ""}
 								</b>
@@ -443,63 +370,12 @@ export default function RuntimeMachine() {
 						</div>
 
 						{/* body */}
-						<div
-							className="grid grid-cols-1 lg:grid-cols-[1.28fr_1fr]"
-							style={{ minHeight: 540 }}
-						>
-							<div
-								style={{
-									position: "relative",
-									padding: "14px 8px",
-									borderRight: `1px solid ${tokens.line}`,
-									userSelect: "none",
-								}}
-								className="lg:border-r border-b lg:border-b-0"
-							>
-								<span
-									style={{
-										position: "absolute",
-										width: 11,
-										height: 11,
-										top: 9,
-										left: 9,
-										borderTop: `1px solid ${tokens.line2}`,
-										borderLeft: `1px solid ${tokens.line2}`,
-									}}
-								/>
-								<span
-									style={{
-										position: "absolute",
-										width: 11,
-										height: 11,
-										top: 9,
-										right: 9,
-										borderTop: `1px solid ${tokens.line2}`,
-										borderRight: `1px solid ${tokens.line2}`,
-									}}
-								/>
-								<span
-									style={{
-										position: "absolute",
-										width: 11,
-										height: 11,
-										bottom: 9,
-										left: 9,
-										borderBottom: `1px solid ${tokens.line2}`,
-										borderLeft: `1px solid ${tokens.line2}`,
-									}}
-								/>
-								<span
-									style={{
-										position: "absolute",
-										width: 11,
-										height: 11,
-										bottom: 9,
-										right: 9,
-										borderBottom: `1px solid ${tokens.line2}`,
-										borderRight: `1px solid ${tokens.line2}`,
-									}}
-								/>
+						<div className="grid min-h-[540px] grid-cols-1 lg:grid-cols-[1.28fr_1fr]">
+							<div className="relative border-b border-border p-[14px_8px] select-none lg:border-r lg:border-b-0">
+								<span className="absolute top-[9px] left-[9px] size-[11px] border-t border-l border-border" />
+								<span className="absolute top-[9px] right-[9px] size-[11px] border-t border-r border-border" />
+								<span className="absolute bottom-[9px] left-[9px] size-[11px] border-b border-l border-border" />
+								<span className="absolute right-[9px] bottom-[9px] size-[11px] border-r border-b border-border" />
 								<StackDiagram
 									activeLayers={activeLayers}
 									readyLayers={readyLayers}
@@ -514,13 +390,7 @@ export default function RuntimeMachine() {
 								/>
 							</div>
 
-							<div
-								style={{
-									display: "flex",
-									flexDirection: "column",
-									minWidth: 0,
-								}}
-							>
+							<div className="flex min-w-0 flex-col">
 								<BrowserViewport
 									addr={addr}
 									setAddr={setAddr}

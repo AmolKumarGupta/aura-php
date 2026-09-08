@@ -1,7 +1,26 @@
 import { useEffect, useRef } from "react";
 import { RotateCw } from "lucide-react";
-import { tokens } from "./tokens";
+import { cn } from "@/lib/utils";
 import type { ConsoleLine } from "./types";
+
+const ENV_ROWS: [string, string][] = [
+	["APP_NAME", "MyApp"],
+	["PHP_VERSION", "8.4.12 (wasm32-wasi)"],
+	["LARAVEL", "12.9.0"],
+	["DB_CONNECTION", "sqlite · ::memory:"],
+];
+
+function ViewportNav({ path }: { path: string }) {
+	return (
+		<div className="mb-3 flex items-center justify-between gap-2.5 border-b border-border pb-2 font-mono text-[9.5px] tracking-[0.05em]">
+			<b className="text-[10px] tracking-[0.14em]">MYAPP</b>
+			<span className="text-muted-foreground">{path}</span>
+			<span className="rounded bg-foreground px-1.5 py-px text-[8.5px] text-background">
+				local
+			</span>
+		</div>
+	);
+}
 
 export function BrowserViewport({
 	addr,
@@ -48,34 +67,16 @@ export function BrowserViewport({
 	}, []);
 
 	return (
-		<div style={{ borderBottom: `1px solid ${tokens.line}` }}>
-			<div
-				style={{
-					height: 42,
-					display: "flex",
-					alignItems: "center",
-					gap: 10,
-					padding: "0 12px",
-					borderBottom: `1px solid ${tokens.line}`,
-				}}
-			>
+		<div className="border-b border-border">
+			<div className="flex h-[42px] items-center gap-2.5 border-b border-border px-3">
 				<button
 					onClick={onReload}
 					title="re-run request"
 					aria-label="re-run request"
-					style={{
-						width: 26,
-						height: 26,
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						border: `1px solid ${tokens.line}`,
-						borderRadius: 6,
-						color: tokens.muted,
-						opacity: busy ? 0.4 : 1,
-						pointerEvents: busy ? "none" : "auto",
-						background: "none",
-					}}
+					className={cn(
+						"flex size-[26px] shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:text-foreground",
+						busy && "pointer-events-none opacity-40",
+					)}
 				>
 					<RotateCw size={13} />
 				</button>
@@ -84,21 +85,9 @@ export function BrowserViewport({
 						e.preventDefault();
 						onSubmit();
 					}}
-					style={{
-						flex: 1,
-						display: "flex",
-						alignItems: "center",
-						background: "#0B0908",
-						border: `1px solid ${tokens.line}`,
-						borderRadius: 6,
-						height: 28,
-						padding: "0 10px",
-						fontFamily: tokens.mono,
-						fontSize: 11,
-						minWidth: 0,
-					}}
+					className="flex h-7 min-w-0 flex-1 items-center rounded-md border border-border bg-muted/40 px-2.5 font-mono text-[11px] focus-within:border-primary/50"
 				>
-					<span style={{ color: tokens.dim }}>http://</span>
+					<span className="text-muted-foreground/60">http://</span>
 					<input
 						ref={addrRef}
 						value={addr}
@@ -106,269 +95,90 @@ export function BrowserViewport({
 						spellCheck={false}
 						autoComplete="off"
 						aria-label="address bar"
-						style={{
-							flex: 1,
-							minWidth: 0,
-							background: "transparent",
-							border: 0,
-							outline: 0,
-							color: tokens.text,
-							fontFamily: tokens.mono,
-							fontSize: 11,
-						}}
+						className="min-w-0 flex-1 border-0 bg-transparent font-mono text-[11px] text-foreground outline-none"
 					/>
 				</form>
 				<span
-					style={{
-						width: 7,
-						height: 7,
-						borderRadius: "50%",
-						flex: "0 0 auto",
-						background: ready
-							? tokens.green
+					className={cn(
+						"size-[7px] shrink-0 rounded-full transition-colors duration-300",
+						ready
+							? "bg-chart-3"
 							: busy
-								? tokens.accent
-								: tokens.dim,
-						transition: "background .3s",
-					}}
+								? "animate-pulse bg-primary"
+								: "bg-muted-foreground/40",
+					)}
 				/>
 			</div>
 
-			<div
-				style={{
-					height: 252,
-					background: "#F5F1EA",
-					color: "#1B1815",
-					overflow: "hidden",
-				}}
-			>
+			<div className="h-[252px] overflow-hidden bg-background text-foreground">
 				<div
-					style={{
-						height: "100%",
-						overflowY: "auto",
-						transition: "opacity .16s,transform .16s",
-						opacity: painting ? 0 : 1,
-						transform: painting ? "translateY(6px)" : "none",
-					}}
+					className={cn(
+						"h-full overflow-y-auto transition-[opacity,transform] duration-150",
+						painting && "translate-y-1.5 opacity-0",
+					)}
 				>
 					{view === "boot" && !booted ? (
-						<div
-							style={{
-								height: "100%",
-								display: "flex",
-								flexDirection: "column",
-								justifyContent: "center",
-								padding: "0 24px",
-								fontFamily: tokens.mono,
-							}}
-						>
-							<div
-								style={{
-									fontSize: 13,
-									letterSpacing: ".22em",
-									fontWeight: 600,
-								}}
-							>
+						<div className="flex h-full flex-col justify-center px-6 font-mono">
+							<div className="text-[13px] font-semibold tracking-[0.22em]">
 								MYAPP
 							</div>
-							<div
-								style={{
-									fontSize: 9.5,
-									color: "#8a8378",
-									margin: "5px 0 12px",
-									letterSpacing: ".05em",
-								}}
-							>
-								laracloud · booting runtime
+							<div className="my-[5px] mb-3 text-[9.5px] tracking-[0.05em] text-muted-foreground">
+								aura · booting runtime
 							</div>
-							<div
-								style={{
-									height: 4,
-									background: "rgba(27,24,21,.13)",
-									borderRadius: 2,
-									overflow: "hidden",
-								}}
-							>
+							<div className="h-1 overflow-hidden rounded-sm bg-muted">
 								<div
-									style={{
-										height: "100%",
-										width: `${Math.round(bootProgress * 100)}%`,
-										background: "#FF2D20",
-									}}
+									className="h-full bg-primary"
+									style={{ width: `${Math.round(bootProgress * 100)}%` }}
 								/>
 							</div>
-							<div
-								style={{
-									marginTop: 9,
-									fontSize: 9,
-									color: "#8a8378",
-									letterSpacing: ".04em",
-								}}
-							>
+							<div className="mt-[9px] text-[9px] tracking-[0.04em] text-muted-foreground">
 								{bootMeta}
 							</div>
 						</div>
 					) : view === "e404" ? (
-						<div style={{ padding: "14px 16px 16px", fontSize: 11 }}>
-							<div
-								style={{
-									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "center",
-									gap: 10,
-									borderBottom: "1px solid rgba(27,24,21,.14)",
-									paddingBottom: 8,
-									marginBottom: 12,
-									fontFamily: tokens.mono,
-									fontSize: 9.5,
-									letterSpacing: ".05em",
-								}}
-							>
-								<b style={{ fontSize: 10, letterSpacing: ".14em" }}>MYAPP</b>
-								<span style={{ color: "#8a8378" }}>
-									{addr
+						<div className="px-4 py-[14px] text-[11px]">
+							<ViewportNav
+								path={
+									addr
 										.replace(/^https?:\/\//, "")
-										.replace(/^localhost:8080/, "") || "/"}
-								</span>
-								<span
-									style={{
-										color: "#F5F1EA",
-										background: "#1B1815",
-										padding: "1px 6px",
-										borderRadius: 3,
-										fontSize: 8.5,
-									}}
-								>
-									local
-								</span>
-							</div>
-							<div style={{ paddingTop: 14 }}>
-								<b
-									style={{
-										fontFamily: tokens.serif,
-										fontWeight: 400,
-										fontSize: 44,
-										lineHeight: 1,
-										color: "#FF2D20",
-										display: "block",
-									}}
-								>
+										.replace(/^localhost:8080/, "") || "/"
+								}
+							/>
+							<div className="pt-[14px]">
+								<b className="block font-serif text-[44px] leading-none font-normal text-destructive">
 									404
 								</b>
-								<span
-									style={{
-										display: "block",
-										fontFamily: tokens.mono,
-										fontSize: 10,
-										marginTop: 6,
-									}}
-								>
+								<span className="mt-1.5 block font-mono text-[10px]">
 									NotFoundHttpException
 								</span>
-								<i
-									style={{
-										display: "block",
-										fontStyle: "normal",
-										fontFamily: tokens.mono,
-										fontSize: 9,
-										color: "#8a8378",
-										marginTop: 4,
-									}}
-								>
+								<i className="mt-1 block font-mono text-[9px] text-muted-foreground not-italic">
 									no route matched — Router.php:1287
 								</i>
 							</div>
 						</div>
 					) : (
-						<div style={{ padding: "14px 16px 16px", fontSize: 11 }}>
-							<div
-								style={{
-									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "center",
-									gap: 10,
-									borderBottom: "1px solid rgba(27,24,21,.14)",
-									paddingBottom: 8,
-									marginBottom: 12,
-									fontFamily: tokens.mono,
-									fontSize: 9.5,
-									letterSpacing: ".05em",
-								}}
-							>
-								<b style={{ fontSize: 10, letterSpacing: ".14em" }}>MYAPP</b>
-								<span style={{ color: "#8a8378" }}>/</span>
-								<span
-									style={{
-										color: "#F5F1EA",
-										background: "#1B1815",
-										padding: "1px 6px",
-										borderRadius: 3,
-										fontSize: 8.5,
-									}}
-								>
-									local
-								</span>
-							</div>
+						<div className="px-4 py-[14px] text-[11px]">
+							<ViewportNav path="/" />
 							<div>
-								<h4
-									style={{
-										fontFamily: tokens.serif,
-										fontWeight: 400,
-										fontSize: 23,
-										margin: "2px 0 6px",
-									}}
-								>
+								<h4 className="mx-0 mt-0.5 mb-1.5 font-serif text-[23px] font-normal">
 									Laravel runs here.
 								</h4>
-								<p
-									style={{
-										color: "#6b655b",
-										marginTop: 0,
-										lineHeight: 1.6,
-										fontSize: 10.5,
-									}}
-								>
+								<p className="mt-0 text-[10.5px] leading-[1.6] text-muted-foreground">
 									Rendered inside this tab by PHP&nbsp;8.4 — no server involved.
 								</p>
 							</div>
-							<div
-								style={{
-									marginTop: 14,
-									borderTop: "1px solid rgba(27,24,21,.14)",
-								}}
-							>
-								{[
-									["APP_NAME", "MyApp"],
-									["PHP_VERSION", "8.4.12 (wasm32-wasi)"],
-									["LARAVEL", "12.9.0"],
-									["DB_CONNECTION", "sqlite · ::memory:"],
-								].map(([k, v]) => (
+							<div className="mt-[14px] border-t border-border">
+								{ENV_ROWS.map(([k, v]) => (
 									<div
 										key={k}
-										style={{
-											display: "flex",
-											justifyContent: "space-between",
-											gap: 10,
-											padding: "6px 0",
-											borderBottom: "1px solid rgba(27,24,21,.09)",
-											fontFamily: tokens.mono,
-											fontSize: 9.5,
-										}}
+										className="flex justify-between gap-2.5 border-b border-border/70 py-1.5 font-mono text-[9.5px]"
 									>
-										<span style={{ color: "#8a8378" }}>{k}</span>
-										<b style={{ fontWeight: 500, textAlign: "right" }}>{v}</b>
+										<span className="text-muted-foreground">{k}</span>
+										<b className="text-right font-medium">{v}</b>
 									</div>
 								))}
 							</div>
-							<div
-								style={{
-									marginTop: 11,
-									color: "#a09a8e",
-									fontFamily: tokens.mono,
-									fontSize: 9,
-									letterSpacing: ".04em",
-								}}
-							>
+							<div className="mt-[11px] font-mono text-[9px] tracking-[0.04em] text-muted-foreground/80">
 								booted in 214 ms · artifact 8.9 MB · zero network hops
 							</div>
 						</div>
@@ -376,24 +186,16 @@ export function BrowserViewport({
 				</div>
 			</div>
 
-			<div
-				style={{
-					fontFamily: tokens.mono,
-					fontSize: 10,
-					color: tokens.muted,
-					padding: "8px 12px",
-					borderTop: `1px solid ${tokens.line}`,
-				}}
-			>
+			<div className="border-t border-border px-3 py-2 font-mono text-[10px] text-muted-foreground">
 				{respOk === null ? (
 					respMeta
 				) : (
 					<>
 						<b
-							style={{
-								color: respOk ? tokens.green : tokens.err,
-								fontWeight: 500,
-							}}
+							className={cn(
+								"font-medium",
+								respOk ? "text-chart-3" : "text-destructive",
+							)}
 						>
 							{respMeta.split("·")[0]}
 						</b>
@@ -414,71 +216,37 @@ export function ConsolePanel({ lines }: { lines: ConsoleLine[] }) {
 	}, [lines.length]);
 
 	return (
-		<div
-			style={{
-				flex: 1,
-				display: "flex",
-				flexDirection: "column",
-				minHeight: 210,
-			}}
-		>
-			<div
-				style={{
-					height: 34,
-					display: "flex",
-					justifyContent: "space-between",
-					alignItems: "center",
-					padding: "0 12px",
-					fontFamily: tokens.mono,
-					fontSize: 10,
-					letterSpacing: ".14em",
-					textTransform: "uppercase",
-					color: tokens.faint,
-					borderBottom: `1px solid ${tokens.line}`,
-				}}
-			>
+		<div className="flex min-h-[210px] flex-1 flex-col">
+			<div className="flex h-[34px] items-center justify-between border-b border-border px-3 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
 				<span>console</span>
 				<span>laravel.log — live</span>
 			</div>
 			<div
 				ref={ref}
-				style={{
-					flex: 1,
-					overflowY: "auto",
-					padding: "10px 12px",
-					fontFamily: tokens.mono,
-					fontSize: 11,
-					lineHeight: 1.75,
-				}}
+				className="flex-1 overflow-y-auto px-3 py-2.5 font-mono text-[11px] leading-[1.75]"
 			>
 				{lines.map((l) => (
-					<div
-						key={l.id}
-						style={{ display: "flex", gap: 11, alignItems: "baseline" }}
-					>
-						<span style={{ color: "#57534B", flex: "0 0 auto" }}>{l.t}</span>
-						<span style={{ color: "#8F887C", flex: "0 0 auto" }}>{l.comp}</span>
+					<div key={l.id} className="flex items-baseline gap-[11px]">
+						<span className="shrink-0 text-muted-foreground/60">{l.t}</span>
+						<span className="shrink-0 text-muted-foreground">{l.comp}</span>
 						<span
-							style={{
-								flex: 1,
-								minWidth: 0,
-								wordBreak: "break-word",
-								color:
-									l.cls === "req" || l.cls === "ok"
-										? tokens.text
-										: l.cls === "err"
-											? tokens.err
-											: "#C9C2B6",
-							}}
+							className={cn(
+								"min-w-0 flex-1 break-words",
+								l.cls === "req" || l.cls === "ok"
+									? "text-foreground"
+									: l.cls === "err"
+										? "text-destructive"
+										: "text-muted-foreground",
+							)}
 						>
 							{l.msg}
 						</span>
 						{l.ms ? (
 							<span
-								style={{
-									color: l.cls === "err" ? tokens.err : tokens.green,
-									flex: "0 0 auto",
-								}}
+								className={cn(
+									"shrink-0",
+									l.cls === "err" ? "text-destructive" : "text-chart-3",
+								)}
 							>
 								{l.ms}
 							</span>
@@ -501,65 +269,29 @@ export function RoutesBar({
 }) {
 	return (
 		<div
-			style={{
-				borderTop: `1px solid ${tokens.line}`,
-				padding: "10px 16px",
-				display: "flex",
-				alignItems: "center",
-				gap: 8,
-				flexWrap: "wrap",
-				opacity: busy ? 0.85 : 1,
-			}}
+			className={cn(
+				"flex flex-wrap items-center gap-2 border-t border-border px-4 py-2.5",
+				busy && "opacity-85",
+			)}
 		>
-			<span
-				style={{
-					fontFamily: tokens.mono,
-					fontSize: 10,
-					letterSpacing: ".16em",
-					textTransform: "uppercase",
-					color: tokens.dim,
-					marginRight: 6,
-				}}
-			>
+			<span className="mr-1.5 font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
 				routes
 			</span>
 			<button
 				onClick={() => onNav("/")}
-				style={{
-					fontFamily: tokens.mono,
-					fontSize: 11,
-					color: activeRoute === "/" ? tokens.accent : tokens.muted,
-					border: `1px solid ${activeRoute === "/" ? "rgba(255,59,38,.55)" : tokens.line}`,
-					borderRadius: 6,
-					padding: "6px 12px",
-					background: activeRoute === "/" ? "rgba(255,59,38,.07)" : "none",
-					opacity: busy ? 0.4 : 1,
-					pointerEvents: busy ? "none" : "auto",
-				}}
+				className={cn(
+					"rounded-md border px-3 py-1.5 font-mono text-[11px] transition",
+					activeRoute === "/"
+						? "border-primary/60 bg-primary/10 text-primary"
+						: "border-border text-muted-foreground hover:text-foreground",
+					busy && "pointer-events-none opacity-40",
+				)}
 			>
 				/
 			</button>
-			<span
-				className="hidden md:inline"
-				style={{
-					marginLeft: "auto",
-					fontFamily: tokens.mono,
-					fontSize: 10,
-					color: tokens.dim,
-				}}
-			>
+			<span className="ml-auto hidden font-mono text-[10px] text-muted-foreground md:inline">
 				press{" "}
-				<kbd
-					style={{
-						fontFamily: tokens.mono,
-						fontSize: 10,
-						border: `1px solid ${tokens.line2}`,
-						borderBottomWidth: 2,
-						borderRadius: 4,
-						padding: "1px 5px",
-						color: tokens.muted,
-					}}
-				>
+				<kbd className="rounded border border-b-2 border-border px-[5px] py-px font-mono text-[10px] text-muted-foreground">
 					/
 				</kbd>{" "}
 				and type any path — the router is real

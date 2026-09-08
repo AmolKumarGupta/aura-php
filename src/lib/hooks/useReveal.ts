@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-
-interface RevealState {
-	visible: boolean;
-	delay: number;
-}
+import { cn } from "@/lib/utils";
 
 /**
  * IntersectionObserver-based reveal hook.
  * Returns a ref callback to attach to elements with optional stagger delay.
- * Uses pure inline styles (opacity / transform) — no global CSS needed.
+ * Pair with `revealClass(visible)` — pure Tailwind, no inline styles.
  */
 export function useRevealGroup(count: number, delays?: number[]) {
 	const [visible, setVisible] = useState<boolean[]>(() =>
@@ -60,13 +56,9 @@ export function useRevealGroup(count: number, delays?: number[]) {
 	return { visible, setRef };
 }
 
-export function revealStyle(v: boolean): React.CSSProperties {
-	return {
-		opacity: v ? 1 : 0,
-		transform: v ? "none" : "translateY(16px)",
-		transition:
-			"opacity .7s cubic-bezier(.22,.75,.2,1),transform .7s cubic-bezier(.22,.75,.2,1)",
-	};
+export function revealClass(v: boolean): string {
+	return cn(
+		"transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.22,0.75,0.2,1)]",
+		v ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
+	);
 }
-
-export type { RevealState };

@@ -3,15 +3,7 @@ import RuntimeMachine from "./components/RuntimeMachine";
 
 function App() {
 	return (
-		<div
-			style={{
-				background: "#0A0908",
-				color: "#EDE7DE",
-				minHeight: "100vh",
-				fontFamily: "'Instrument Sans',Inter,system-ui,sans-serif",
-				scrollBehavior: "smooth",
-			}}
-		>
+		<div className="min-h-screen bg-background font-sans text-foreground">
 			<Hero />
 			<RuntimeMachine />
 		</div>
