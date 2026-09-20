@@ -18,6 +18,7 @@
 		"@php-wasm/web-8-4": "3.1.51",
 		"@tailwindcss/vite": "4.3.3",
 		"@uiw/react-codemirror": "4.25.11",
+		"archiver": "8.0.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"cn": "^0.2.5",
