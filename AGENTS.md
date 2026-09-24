@@ -10,6 +10,7 @@ React + TypeScript + Vite app that runs **PHP in the browser via WebAssembly** (
 - **PHP Runtime**: Initialized in `App.tsx` via `loadPHPRuntime()` + `new PHP(runtimeId)`
 - **WASM Loading**: Custom Vite plugin `vite-plugins/force-wasm-url.ts` rewrites `.wasm` imports from `@php-wasm` to use `?url` suffix
 - **Path Alias**: `@/*` → `./src/*` (configured in tsconfig + vite.config.ts)
+- Do not import anything from `apps/` directory in `src/` folder
 
 ## Non-Obvious Gotchas
 1. **`@php-wasm/web-8-4` excluded from dep optimization** (`vite.config.ts:24`) — otherwise WASM fails to load

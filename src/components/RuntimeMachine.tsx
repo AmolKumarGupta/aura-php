@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { PHP } from "@php-wasm/universal";
 import { cn } from "@/lib/utils";
 import { ENTRY_Y, layerCenterY } from "./runtime/types";
 import type { ConsoleLine, RouteStep } from "./runtime/types";
 import StackDiagram from "./runtime/StackDiagram";
+import CodePanel from "./runtime/CodePanel";
 import {
 	BrowserViewport,
 	ConsolePanel,
@@ -94,7 +96,13 @@ function normalize(v: string): string {
 
 let lineId = 0;
 
-export default function RuntimeMachine() {
+export default function RuntimeMachine({
+	php,
+	filesReady,
+}: {
+	php: PHP | null;
+	filesReady: boolean;
+}) {
 	const [busy, setBusy] = useState(false);
 	const [booted, setBooted] = useState(false);
 	const [activeLayers, setActiveLayers] = useState<Set<number>>(new Set());
@@ -370,25 +378,8 @@ export default function RuntimeMachine() {
 						</div>
 
 						{/* body */}
-						<div className="grid min-h-[540px] grid-cols-1 lg:grid-cols-[1.28fr_1fr]">
-							<div className="relative border-b border-border p-[14px_8px] select-none lg:border-r lg:border-b-0">
-								<span className="absolute top-[9px] left-[9px] size-[11px] border-t border-l border-border" />
-								<span className="absolute top-[9px] right-[9px] size-[11px] border-t border-r border-border" />
-								<span className="absolute bottom-[9px] left-[9px] size-[11px] border-b border-l border-border" />
-								<span className="absolute right-[9px] bottom-[9px] size-[11px] border-r border-b border-border" />
-								<StackDiagram
-									activeLayers={activeLayers}
-									readyLayers={readyLayers}
-									packetY={packetY}
-									packetVisible={packetVisible}
-									packetLabel={packetLabel}
-									packetOk={packetOk}
-									blinking={
-										!window.matchMedia?.("(prefers-reduced-motion: reduce)")
-											.matches
-									}
-								/>
-							</div>
+						<div className="grid min-h-[540px] grid-cols-1 lg:grid-cols-[1.2fr_1fr] xl:grid-cols-[2fr_1fr]">
+							<CodePanel php={php} filesReady={filesReady} />
 
 							<div className="flex min-w-0 flex-col">
 								<BrowserViewport

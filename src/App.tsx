@@ -6,7 +6,7 @@ import useLaravel from "./lib/hooks/useLaravel";
 
 function App() {
 	const { booted, php } = usePhp();
-	const { bootLaravel } = useLaravel();
+	const { bootLaravel, laravelBooted } = useLaravel();
 
 	useEffect(() => {
 		if (booted === true && php) {
@@ -43,7 +43,7 @@ function App() {
 	return (
 		<div className="min-h-screen bg-background font-sans text-foreground">
 			<Hero />
-			<RuntimeMachine />
+			<RuntimeMachine php={php} filesReady={laravelBooted} />
 		</div>
 	);
 }
