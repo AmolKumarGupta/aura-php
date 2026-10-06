@@ -1,42 +1,51 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
-import { FileCode2, FileText } from "lucide-react";
 import type { PHP } from "@php-wasm/universal";
-import { cn } from "@/lib/utils";
+import FileTree, { type DirEntry } from "./FileTree";
 
-type FileEntry = {
-	path: string;
-	folder: string;
-	label: string;
-	php: boolean;
-};
+const DEFAULT_FILE = "routes/web.php";
+const PRELOAD_DIRS = ["/app/app", "/app/app/Models", "/app/routes"];
+const MAX_PREVIEW_CHARS = 200_000;
 
-const FILES: FileEntry[] = [
-	{
-		path: "routes/web.php",
-		folder: "routes",
-		label: "web.php",
-		php: true,
-	},
-	{
-		path: "app/Models/User.php",
-		folder: "app/Models",
-		label: "User.php",
-		php: true,
-	},
-	{
-		path: "database/migrations/0001_01_01_000000_create_users_table.php",
-		folder: "database/migrations",
-		label: "create_users_table.php",
-		php: true,
-	},
-	{
-		path: ".env.example",
-		folder: "laravel-app",
-		label: ".env.example",
-		php: false,
-	},
-];
+function listDirEntries(php: PHP, vfsDir: string): DirEntry[] {
+	let names: string[];
+	try {
+		names = php.listFiles(vfsDir);
+	} catch {
+		return [];
+	}
+	const out: DirEntry[] = [];
+	for (const name of names) {
+		if (name === "." || name === ".." || name === "") continue;
+		const full = `${vfsDir}/${name}`;
+		let isDir: boolean;
+		try {
+			isDir = php.isDir(full);
+		} catch {
+			isDir = false;
+		}
+		out.push({ name, isDir });
+	}
+	return out;
+}
+
+function readPreview(php: PHP, vfsPath: string): string {
+	try {
+		const text = php.readFileAsText(vfsPath);
+		if (text.length > MAX_PREVIEW_CHARS) {
+			return `${text.slice(0, MAX_PREVIEW_CHARS)}\n\n… (truncated, file too large to preview)`;
+		}
+		// crude binary guard: lots of NULs means not text
+		let nul = 0;
+		for (let i = 0; i < Math.min(text.length, 8000); i += 1) {
+			if (text.charCodeAt(i) === 0) nul += 1;
+		}
+		if (nul > 10) return "(binary file — preview not supported)";
+		return text;
+	} catch {
+		return "(could not load file)";
+	}
+}
 
 export default function CodePanel({
 	php,
@@ -45,39 +54,107 @@ export default function CodePanel({
 	php: PHP | null;
 	filesReady: boolean;
 }) {
-	const [active, setActive] = useState(FILES[0].path);
-	const [docs, setDocs] = useState<Record<string, string> | null>(null);
-	const activeFile = FILES.find((f) => f.path === active) ?? FILES[0];
-	const folders = [...new Set(FILES.map((f) => f.folder))];
+	const [childrenMap, setChildrenMap] = useState<Record<string, DirEntry[]>>(
+		{},
+	);
+	const [expanded, setExpanded] = useState<Set<string>>(new Set());
+	const [loadingDirs, setLoadingDirs] = useState<Set<string>>(new Set());
+	const [active, setActive] = useState<string | null>(DEFAULT_FILE);
+	const [docs, setDocs] = useState<Record<string, string>>({});
+	const [treeReady, setTreeReady] = useState(false);
 
+	// Initial tree load: top-level + preloaded dirs so the default file is visible.
 	useEffect(() => {
 		if (!php || !filesReady) return;
 		let cancelled = false;
 		(async () => {
 			await Promise.resolve();
-			const next: Record<string, string> = {};
-			for (const f of FILES) {
+			if (cancelled) return;
+			const nextMap: Record<string, DirEntry[]> = {};
+			nextMap["/app"] = listDirEntries(php, "/app");
+			const nextExpanded = new Set<string>();
+			for (const dir of PRELOAD_DIRS) {
 				try {
-					next[f.path] = php.readFileAsText(`/app/${f.path}`);
+					if (php.fileExists(dir) && php.isDir(dir)) {
+						nextMap[dir] = listDirEntries(php, dir);
+						nextExpanded.add(dir);
+					}
 				} catch {
-					next[f.path] = "(could not load file)";
+					// skip dirs that can't be read (e.g. missing in zip)
 				}
 			}
-			if (!cancelled) setDocs(next);
+			if (cancelled) return;
+			setChildrenMap(nextMap);
+			setExpanded(nextExpanded);
+			setTreeReady(true);
+			setDocs((prev) =>
+				prev[DEFAULT_FILE] !== undefined
+					? prev
+					: {
+							...prev,
+							[DEFAULT_FILE]: readPreview(php, `/app/${DEFAULT_FILE}`),
+						},
+			);
 		})();
 		return () => {
 			cancelled = true;
 		};
 	}, [php, filesReady]);
 
+	const handleToggle = useCallback(
+		(vfsDir: string) => {
+			setExpanded((prev) => {
+				const next = new Set(prev);
+				if (next.has(vfsDir)) {
+					next.delete(vfsDir);
+				} else {
+					next.add(vfsDir);
+				}
+				return next;
+			});
+			// Lazy-load children on first expand (keeps vendor/ cheap until opened).
+			if (!childrenMap[vfsDir] && php) {
+				setLoadingDirs((prev) => new Set(prev).add(vfsDir));
+				// listFiles/isDir are sync; defer one tick so the chevron animates first.
+				setTimeout(() => {
+					try {
+						const entries = listDirEntries(php, vfsDir);
+						setChildrenMap((prev) => ({ ...prev, [vfsDir]: entries }));
+					} finally {
+						setLoadingDirs((prev) => {
+							const next = new Set(prev);
+							next.delete(vfsDir);
+							return next;
+						});
+					}
+				}, 0);
+			}
+		},
+		[childrenMap, php],
+	);
+
+	const handleSelect = useCallback(
+		(relPath: string) => {
+			setActive(relPath);
+			if (php && docs[relPath] === undefined) {
+				const text = readPreview(php, `/app/${relPath}`);
+				setDocs((prev) => ({ ...prev, [relPath]: text }));
+			}
+		},
+		[php, docs],
+	);
+
 	const onEdit = (v: string) => {
-		setDocs((prev) => (prev ? { ...prev, [activeFile.path]: v } : prev));
+		if (!active) return;
+		setDocs((prev) => ({ ...prev, [active]: v }));
 		try {
-			php?.writeFile(`/app/${activeFile.path}`, v);
+			php?.writeFile(`/app/${active}`, v);
 		} catch {
 			// keep the local edit when the save fails
 		}
 	};
+
+	const activeContent = active ? docs[active] : undefined;
 
 	return (
 		<div className="flex min-h-[320px] flex-col border-b border-border lg:col-span-2 xl:col-span-1 xl:min-h-[540px] xl:border-r xl:border-b-0">
@@ -87,42 +164,32 @@ export default function CodePanel({
 			</div>
 
 			<div className="flex min-h-0 flex-1">
-				<div className="w-[150px] shrink-0 overflow-y-auto border-r border-border py-1.5">
-					{folders.map((folder) => (
-						<div key={folder}>
-							<div className="truncate px-3 pt-1.5 font-mono text-[9px] tracking-[0.1em] text-muted-foreground/70 uppercase">
-								{folder}
-							</div>
-							{FILES.filter((f) => f.folder === folder).map((f) => {
-								const Icon = f.php ? FileCode2 : FileText;
-								return (
-									<button
-										key={f.path}
-										onClick={() => setActive(f.path)}
-										className={cn(
-											"flex w-full items-center gap-1.5 truncate px-3 py-1 text-left font-mono text-[11px] transition",
-											f.path === active
-												? "bg-primary/10 text-primary"
-												: "text-muted-foreground hover:text-foreground",
-										)}
-									>
-										<Icon className="size-3.5 shrink-0" />
-										<span className="truncate">{f.label}</span>
-									</button>
-								);
-							})}
+				<div className="w-[200px] shrink-0 overflow-y-auto border-r border-border py-1.5">
+					{treeReady ? (
+						<FileTree
+							childrenMap={childrenMap}
+							expanded={expanded}
+							loadingDirs={loadingDirs}
+							activeFile={active}
+							onToggle={handleToggle}
+							onSelect={handleSelect}
+						/>
+					) : (
+						<div className="px-3 py-8 text-center font-mono text-[11px] text-muted-foreground">
+							{filesReady ? "loading files…" : "Waiting for boot..."}
 						</div>
-					))}
+					)}
 				</div>
 
 				<div className="flex min-w-0 flex-1 flex-col">
 					<div className="shrink-0 truncate border-b border-border px-3 py-1.5 font-mono text-[10.5px] text-muted-foreground">
-						{activeFile.path}
+						{active ?? "Select a file"}
 					</div>
 					<div className="min-h-0 flex-1 overflow-hidden">
-						{docs ? (
+						{active && activeContent !== undefined ? (
 							<CodeMirror
-								value={docs[activeFile.path]}
+								key={active}
+								value={activeContent}
 								onChange={onEdit}
 								theme="none"
 								height="100%"
@@ -135,7 +202,7 @@ export default function CodePanel({
 							/>
 						) : (
 							<div className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
-								loading files…
+								{active ? "loading files…" : "Select a file"}
 							</div>
 						)}
 					</div>

@@ -3,7 +3,6 @@ import type { PHP } from "@php-wasm/universal";
 import { cn } from "@/lib/utils";
 import { ENTRY_Y, layerCenterY } from "./runtime/types";
 import type { ConsoleLine, RouteStep } from "./runtime/types";
-import StackDiagram from "./runtime/StackDiagram";
 import CodePanel from "./runtime/CodePanel";
 import {
 	BrowserViewport,
@@ -105,12 +104,12 @@ export default function RuntimeMachine({
 }) {
 	const [busy, setBusy] = useState(false);
 	const [booted, setBooted] = useState(false);
-	const [activeLayers, setActiveLayers] = useState<Set<number>>(new Set());
-	const [readyLayers, setReadyLayers] = useState<Set<number>>(new Set());
-	const [packetY, setPacketY] = useState(ENTRY_Y);
-	const [packetVisible, setPacketVisible] = useState(false);
-	const [packetLabel, setPacketLabel] = useState("");
-	const [packetOk, setPacketOk] = useState(false);
+	const [, setActiveLayers] = useState<Set<number>>(new Set());
+	const [, setReadyLayers] = useState<Set<number>>(new Set());
+	const [, setPacketY] = useState(ENTRY_Y);
+	const [, setPacketVisible] = useState(false);
+	const [, setPacketLabel] = useState("");
+	const [, setPacketOk] = useState(false);
 	const [lines, setLines] = useState<ConsoleLine[]>([]);
 	const [addr, setAddr] = useState("localhost:8080/");
 	const [activeRoute, setActiveRoute] = useState("/");
