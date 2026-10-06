@@ -13,29 +13,29 @@ function App() {
 			(async () => {
 				console.log({ booted });
 				await bootLaravel(php);
-				php.writeFile(
-					"/script.php",
-					`<?php
-          use Symfony\\Component\\Console\\Output\\ConsoleOutput;
+				// php.writeFile(
+				// 	"/script.php",
+				// 	`<?php
+				//       use Symfony\\Component\\Console\\Output\\ConsoleOutput;
 
-          chdir('/app');
-          require '/app/vendor/autoload.php';
+				//       chdir('/app');
+				//       require '/app/vendor/autoload.php';
 
-          $app = require_once '/app/bootstrap/app.php';
-          $kernel = $app->make(Illuminate\\Contracts\\Console\\Kernel::class);
-          $kernel->bootstrap();
+				//       $app = require_once '/app/bootstrap/app.php';
+				//       $kernel = $app->make(Illuminate\\Contracts\\Console\\Kernel::class);
+				//       $kernel->bootstrap();
 
-          $output = new ConsoleOutput;
-          $output->setDecorated(true);
-          \\Illuminate\\Support\\Facades\\Artisan::call('list', outputBuffer: $output);
-        `,
-				);
+				//       $output = new ConsoleOutput;
+				//       $output->setDecorated(true);
+				//       \\Illuminate\\Support\\Facades\\Artisan::call('list', outputBuffer: $output);
+				//     `,
+				// );
 
-				const resp = await php.runStream({
-					scriptPath: "/script.php",
-				});
+				// const resp = await php.runStream({
+				// 	scriptPath: "/script.php",
+				// });
 
-				console.log(await resp.stdoutText);
+				// console.log(await resp.stdoutText);
 			})();
 		}
 	}, [booted, php, bootLaravel]);
