@@ -1,103 +1,71 @@
 import { useEffect, useRef } from "react";
-import { RotateCw } from "lucide-react";
+import { Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ConsoleLine } from "./types";
 
-const ENV_ROWS: [string, string][] = [
-	["APP_NAME", "MyApp"],
-	["PHP_VERSION", "8.4.12 (wasm32-wasi)"],
-	["LARAVEL", "12.9.0"],
-	["DB_CONNECTION", "sqlite · ::memory:"],
-];
-
-function ViewportNav({ path }: { path: string }) {
-	return (
-		<div className="mb-3 flex items-center justify-between gap-2.5 border-b border-border pb-2 font-mono text-[9.5px] tracking-[0.05em]">
-			<b className="text-[10px] tracking-[0.14em]">MYAPP</b>
-			<span className="text-muted-foreground">{path}</span>
-			<span className="rounded bg-foreground px-1.5 py-px text-[8.5px] text-background">
-				local
-			</span>
-		</div>
-	);
-}
+export type PreviewView = "boot" | "idle" | "output";
 
 export function BrowserViewport({
-	addr,
-	setAddr,
-	onSubmit,
-	onReload,
+	onRun,
+	canRun,
 	ready,
 	busy,
 	view,
 	painting,
+	output,
+	errorText,
 	respMeta,
 	respOk,
 	bootProgress,
 	bootMeta,
 	booted,
 }: {
-	addr: string;
-	setAddr: (v: string) => void;
-	onSubmit: () => void;
-	onReload: () => void;
+	onRun: () => void;
+	canRun: boolean;
 	ready: boolean;
 	busy: boolean;
-	view: "boot" | "welcome" | "e404";
+	view: PreviewView;
 	painting: boolean;
+	output: string | null;
+	errorText: string | null;
 	respMeta: string;
 	respOk: boolean | null;
 	bootProgress: number;
 	bootMeta: string;
 	booted: boolean;
 }) {
-	const addrRef = useRef<HTMLInputElement>(null);
-
 	useEffect(() => {
 		const h = (e: KeyboardEvent) => {
-			const ae = document.activeElement as HTMLElement | null;
-			if (e.key === "/" && ae && !/INPUT|TEXTAREA/.test(ae.tagName)) {
+			if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
 				e.preventDefault();
-				addrRef.current?.focus();
-				addrRef.current?.select();
+				onRun();
 			}
 		};
 		window.addEventListener("keydown", h);
 		return () => window.removeEventListener("keydown", h);
-	}, []);
+	}, [onRun]);
 
 	return (
 		<div className="border-b border-border">
 			<div className="flex h-[42px] items-center gap-2.5 border-b border-border px-3">
 				<button
-					onClick={onReload}
-					title="re-run request"
-					aria-label="re-run request"
+					onClick={onRun}
+					disabled={!canRun}
+					title="Run main.php (Ctrl+Enter)"
+					aria-label="Run main.php"
 					className={cn(
-						"flex size-[26px] shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:text-foreground",
-						busy && "pointer-events-none opacity-40",
+						"flex h-7 shrink-0 items-center gap-1.5 rounded-md px-3 font-mono text-[11px] font-medium transition",
+						canRun
+							? "bg-primary text-primary-foreground hover:opacity-90"
+							: "pointer-events-none bg-muted text-muted-foreground opacity-60",
 					)}
 				>
-					<RotateCw size={13} />
+					<Play size={13} className={cn(busy && "animate-pulse")} />
+					{busy ? "Running…" : "Run main.php"}
 				</button>
-				<form
-					onSubmit={(e) => {
-						e.preventDefault();
-						onSubmit();
-					}}
-					className="flex h-7 min-w-0 flex-1 items-center rounded-md border border-border bg-muted/40 px-2.5 font-mono text-[11px] focus-within:border-primary/50"
-				>
-					<span className="text-muted-foreground/60">http://</span>
-					<input
-						ref={addrRef}
-						value={addr}
-						onChange={(e) => setAddr(e.target.value)}
-						spellCheck={false}
-						autoComplete="off"
-						aria-label="address bar"
-						className="min-w-0 flex-1 border-0 bg-transparent font-mono text-[11px] text-foreground outline-none"
-					/>
-				</form>
+				<span className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted-foreground">
+					/app/main.php
+				</span>
 				<span
 					className={cn(
 						"size-[7px] shrink-0 rounded-full transition-colors duration-300",
@@ -135,52 +103,34 @@ export function BrowserViewport({
 								{bootMeta}
 							</div>
 						</div>
-					) : view === "e404" ? (
-						<div className="px-4 py-[14px] text-[11px]">
-							<ViewportNav
-								path={
-									addr
-										.replace(/^https?:\/\//, "")
-										.replace(/^localhost:8080/, "") || "/"
-								}
-							/>
-							<div className="pt-[14px]">
-								<b className="block font-serif text-[44px] leading-none font-normal text-destructive">
-									404
-								</b>
-								<span className="mt-1.5 block font-mono text-[10px]">
-									NotFoundHttpException
-								</span>
-								<i className="mt-1 block font-mono text-[9px] text-muted-foreground not-italic">
-									no route matched — Router.php:1287
-								</i>
+					) : view === "idle" ? (
+						<div className="flex h-full flex-col items-start justify-center px-6 font-mono">
+							<div className="text-[13px] font-semibold tracking-[0.22em]">
+								MAIN.PHP
+							</div>
+							<div className="my-[5px] mb-3 max-w-[300px] text-[10px] leading-relaxed tracking-[0.02em] text-muted-foreground">
+								Runtime ready. Press Run to execute{" "}
+								<span className="text-foreground">/app/main.php</span> — its
+								stdout renders here as HTML.
+							</div>
+							<div className="text-[9px] tracking-[0.04em] text-muted-foreground/70">
+								ctrl / cmd + enter to run
 							</div>
 						</div>
+					) : errorText && !output ? (
+						<pre className="h-full overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-destructive">
+							{errorText}
+						</pre>
+					) : output ? (
+						<iframe
+							title="main.php output"
+							sandbox=""
+							srcDoc={output}
+							className="h-full w-full border-0 bg-white"
+						/>
 					) : (
-						<div className="px-4 py-[14px] text-[11px]">
-							<ViewportNav path="/" />
-							<div>
-								<h4 className="mx-0 mt-0.5 mb-1.5 font-serif text-[23px] font-normal">
-									Laravel runs here.
-								</h4>
-								<p className="mt-0 text-[10.5px] leading-[1.6] text-muted-foreground">
-									Rendered inside this tab by PHP&nbsp;8.4 — no server involved.
-								</p>
-							</div>
-							<div className="mt-[14px] border-t border-border">
-								{ENV_ROWS.map(([k, v]) => (
-									<div
-										key={k}
-										className="flex justify-between gap-2.5 border-b border-border/70 py-1.5 font-mono text-[9.5px]"
-									>
-										<span className="text-muted-foreground">{k}</span>
-										<b className="text-right font-medium">{v}</b>
-									</div>
-								))}
-							</div>
-							<div className="mt-[11px] font-mono text-[9px] tracking-[0.04em] text-muted-foreground/80">
-								booted in 214 ms · artifact 8.9 MB · zero network hops
-							</div>
+						<div className="px-4 py-3 font-mono text-[11px] text-muted-foreground">
+							(no output — main.php echoed nothing)
 						</div>
 					)}
 				</div>
@@ -231,7 +181,7 @@ export function ConsolePanel({ lines }: { lines: ConsoleLine[] }) {
 						<span className="shrink-0 text-muted-foreground">{l.comp}</span>
 						<span
 							className={cn(
-								"min-w-0 flex-1 break-words",
+								"min-w-0 flex-1 break-words whitespace-pre-wrap",
 								l.cls === "req" || l.cls === "ok"
 									? "text-foreground"
 									: l.cls === "err"
@@ -254,48 +204,6 @@ export function ConsolePanel({ lines }: { lines: ConsoleLine[] }) {
 					</div>
 				))}
 			</div>
-		</div>
-	);
-}
-
-export function RoutesBar({
-	busy,
-	activeRoute,
-	onNav,
-}: {
-	busy: boolean;
-	activeRoute: string;
-	onNav: (path: string) => void;
-}) {
-	return (
-		<div
-			className={cn(
-				"flex flex-wrap items-center gap-2 border-t border-border px-4 py-2.5",
-				busy && "opacity-85",
-			)}
-		>
-			<span className="mr-1.5 font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
-				routes
-			</span>
-			<button
-				onClick={() => onNav("/")}
-				className={cn(
-					"rounded-md border px-3 py-1.5 font-mono text-[11px] transition",
-					activeRoute === "/"
-						? "border-primary/60 bg-primary/10 text-primary"
-						: "border-border text-muted-foreground hover:text-foreground",
-					busy && "pointer-events-none opacity-40",
-				)}
-			>
-				/
-			</button>
-			<span className="ml-auto hidden font-mono text-[10px] text-muted-foreground md:inline">
-				press{" "}
-				<kbd className="rounded border border-b-2 border-border px-[5px] py-px font-mono text-[10px] text-muted-foreground">
-					/
-				</kbd>{" "}
-				and type any path — the router is real
-			</span>
 		</div>
 	);
 }

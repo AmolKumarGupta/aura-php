@@ -3,7 +3,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import type { PHP } from "@php-wasm/universal";
 import FileTree, { type DirEntry } from "./FileTree";
 
-const DEFAULT_FILE = "routes/web.php";
+const DEFAULT_FILE = "main.php";
 const PRELOAD_DIRS = ["/app/app", "/app/app/Models", "/app/routes"];
 const MAX_PREVIEW_CHARS = 200_000;
 
@@ -210,7 +210,7 @@ export default function CodePanel({
 			</div>
 
 			<div className="shrink-0 border-t border-border px-3 py-2 font-mono text-[10px] text-muted-foreground">
-				Edits save to the app files in this tab.
+				Edits save to the app files in this tab. Run always executes main.php.
 			</div>
 		</div>
 	);
