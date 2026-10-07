@@ -8,14 +8,15 @@ function App() {
 	const { booted, php } = usePhp();
 	const { bootLaravel, laravelBooted } = useLaravel();
 
+	// Boot Laravel once the WASM runtime is up. bootLaravel is stable
+	// (useCallback + init-once guard), so deps are exhaustive with no
+	// eslint-disable. Failures are logged — the preview pane surfaces them.
 	useEffect(() => {
-		if (booted === true && php) {
-			(async () => {
-				await bootLaravel(php);
-			})();
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [booted, php]);
+		if (!booted || !php) return;
+		bootLaravel(php).catch((e) => {
+			console.error("[aura] laravel boot failed", e);
+		});
+	}, [booted, php, bootLaravel]);
 
 	return (
 		<div className="min-h-screen bg-background font-sans text-foreground">

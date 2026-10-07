@@ -1,7 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
-import CodeMirror from "@uiw/react-codemirror";
+import {
+	Suspense,
+	lazy,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import type { PHP } from "@php-wasm/universal";
 import FileTree, { type DirEntry } from "./FileTree";
+
+// Heavy editor — split out of the initial bundle (bundle-dynamic-imports).
+const CodeMirror = lazy(() => import("@uiw/react-codemirror"));
 
 const DEFAULT_FILE = "main.php";
 const PRELOAD_DIRS = ["/app/app", "/app/app/Models", "/app/routes"];
@@ -30,21 +39,23 @@ function listDirEntries(php: PHP, vfsDir: string): DirEntry[] {
 }
 
 function readPreview(php: PHP, vfsPath: string): string {
+	let text: string;
 	try {
-		const text = php.readFileAsText(vfsPath);
-		if (text.length > MAX_PREVIEW_CHARS) {
-			return `${text.slice(0, MAX_PREVIEW_CHARS)}\n\n… (truncated, file too large to preview)`;
-		}
-		// crude binary guard: lots of NULs means not text
-		let nul = 0;
-		for (let i = 0; i < Math.min(text.length, 8000); i += 1) {
-			if (text.charCodeAt(i) === 0) nul += 1;
-		}
-		if (nul > 10) return "(binary file — preview not supported)";
-		return text;
+		text = php.readFileAsText(vfsPath);
 	} catch {
 		return "(could not load file)";
 	}
+	if (text.length > MAX_PREVIEW_CHARS) {
+		return `${text.slice(0, MAX_PREVIEW_CHARS)}\n\n… (truncated, file too large to preview)`;
+	}
+	// Crude binary guard: lots of NULs means not text.
+	let nul = 0;
+	const scan = Math.min(text.length, 8000);
+	for (let i = 0; i < scan; i += 1) {
+		if (text.charCodeAt(i) === 0) nul += 1;
+		if (nul > 10) return "(binary file — preview not supported)";
+	}
+	return text;
 }
 
 export default function CodePanel({
@@ -62,6 +73,21 @@ export default function CodePanel({
 	const [active, setActive] = useState<string | null>(DEFAULT_FILE);
 	const [docs, setDocs] = useState<Record<string, string>>({});
 	const [treeReady, setTreeReady] = useState(false);
+	// Refs mirror async state so callbacks stay stable (rerender-dependencies):
+	// FileTree won't re-render just because `docs` gained a keystroke.
+	// Synced in effects — never written during render (react-hooks/refs).
+	const phpRef = useRef<PHP | null>(null);
+	const childrenRef = useRef(childrenMap);
+	const docsRef = useRef(docs);
+	useEffect(() => {
+		phpRef.current = php;
+	}, [php]);
+	useEffect(() => {
+		childrenRef.current = childrenMap;
+	}, [childrenMap]);
+	useEffect(() => {
+		docsRef.current = docs;
+	}, [docs]);
 
 	// Initial tree load: top-level + preloaded dirs so the default file is visible.
 	useEffect(() => {
@@ -87,72 +113,73 @@ export default function CodePanel({
 			setChildrenMap(nextMap);
 			setExpanded(nextExpanded);
 			setTreeReady(true);
-			setDocs((prev) =>
-				prev[DEFAULT_FILE] !== undefined
-					? prev
-					: {
-							...prev,
-							[DEFAULT_FILE]: readPreview(php, `/app/${DEFAULT_FILE}`),
-						},
-			);
+			if (docsRef.current[DEFAULT_FILE] === undefined) {
+				const text = readPreview(php, `/app/${DEFAULT_FILE}`);
+				setDocs((prev) =>
+					prev[DEFAULT_FILE] !== undefined
+						? prev
+						: { ...prev, [DEFAULT_FILE]: text },
+				);
+			}
 		})();
 		return () => {
 			cancelled = true;
 		};
 	}, [php, filesReady]);
 
-	const handleToggle = useCallback(
-		(vfsDir: string) => {
-			setExpanded((prev) => {
-				const next = new Set(prev);
-				if (next.has(vfsDir)) {
-					next.delete(vfsDir);
-				} else {
-					next.add(vfsDir);
+	const handleToggle = useCallback((vfsDir: string) => {
+		setExpanded((prev) => {
+			const next = new Set(prev);
+			if (next.has(vfsDir)) next.delete(vfsDir);
+			else next.add(vfsDir);
+			return next;
+		});
+		// Lazy-load children on first expand (keeps vendor/ cheap until opened).
+		if (!childrenRef.current[vfsDir]) {
+			const instance = phpRef.current;
+			if (!instance) return;
+			setLoadingDirs((prev) => new Set(prev).add(vfsDir));
+			// listFiles/isDir are sync; defer one tick so the chevron animates first.
+			setTimeout(() => {
+				try {
+					const entries = listDirEntries(instance, vfsDir);
+					setChildrenMap((prev) => ({ ...prev, [vfsDir]: entries }));
+				} finally {
+					setLoadingDirs((prev) => {
+						const next = new Set(prev);
+						next.delete(vfsDir);
+						return next;
+					});
 				}
-				return next;
-			});
-			// Lazy-load children on first expand (keeps vendor/ cheap until opened).
-			if (!childrenMap[vfsDir] && php) {
-				setLoadingDirs((prev) => new Set(prev).add(vfsDir));
-				// listFiles/isDir are sync; defer one tick so the chevron animates first.
-				setTimeout(() => {
-					try {
-						const entries = listDirEntries(php, vfsDir);
-						setChildrenMap((prev) => ({ ...prev, [vfsDir]: entries }));
-					} finally {
-						setLoadingDirs((prev) => {
-							const next = new Set(prev);
-							next.delete(vfsDir);
-							return next;
-						});
-					}
-				}, 0);
-			}
-		},
-		[childrenMap, php],
-	);
-
-	const handleSelect = useCallback(
-		(relPath: string) => {
-			setActive(relPath);
-			if (php && docs[relPath] === undefined) {
-				const text = readPreview(php, `/app/${relPath}`);
-				setDocs((prev) => ({ ...prev, [relPath]: text }));
-			}
-		},
-		[php, docs],
-	);
-
-	const onEdit = (v: string) => {
-		if (!active) return;
-		setDocs((prev) => ({ ...prev, [active]: v }));
-		try {
-			php?.writeFile(`/app/${active}`, v);
-		} catch {
-			// keep the local edit when the save fails
+			}, 0);
 		}
-	};
+	}, []);
+
+	const handleSelect = useCallback((relPath: string) => {
+		setActive(relPath);
+		if (docsRef.current[relPath] === undefined) {
+			const instance = phpRef.current;
+			if (!instance) return;
+			const text = readPreview(instance, `/app/${relPath}`);
+			setDocs((prev) =>
+				prev[relPath] !== undefined ? prev : { ...prev, [relPath]: text },
+			);
+		}
+	}, []);
+
+	const onEdit = useCallback((v: string) => {
+		setActive((current) => {
+			if (!current) return current;
+			const key = current;
+			setDocs((prev) => ({ ...prev, [key]: v }));
+			try {
+				phpRef.current?.writeFile(`/app/${key}`, v);
+			} catch {
+				// keep the local edit when the save fails
+			}
+			return current;
+		});
+	}, []);
 
 	const activeContent = active ? docs[active] : undefined;
 
@@ -186,23 +213,37 @@ export default function CodePanel({
 						{active ?? "Select a file"}
 					</div>
 					<div className="min-h-0 flex-1 overflow-hidden">
-						{active && activeContent !== undefined ? (
-							<CodeMirror
-								key={active}
-								value={activeContent}
-								onChange={onEdit}
-								theme="none"
-								height="100%"
-								basicSetup={{
-									lineNumbers: true,
-									foldGutter: false,
-									autocompletion: false,
-								}}
-								style={{ fontSize: "12px" }}
-							/>
+						{active ? (
+							activeContent !== undefined ? (
+								<Suspense
+									fallback={
+										<div className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
+											loading editor…
+										</div>
+									}
+								>
+									<CodeMirror
+										key={active}
+										value={activeContent}
+										onChange={onEdit}
+										theme="none"
+										height="100%"
+										basicSetup={{
+											lineNumbers: true,
+											foldGutter: false,
+											autocompletion: false,
+										}}
+										style={{ fontSize: "12px" }}
+									/>
+								</Suspense>
+							) : (
+								<div className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
+									loading files…
+								</div>
+							)
 						) : (
 							<div className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
-								{active ? "loading files…" : "Select a file"}
+								Select a file
 							</div>
 						)}
 					</div>
