@@ -3,10 +3,12 @@ import {
 	lazy,
 	useCallback,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
 import type { PHP } from "@php-wasm/universal";
+import { php as phpLang } from "@codemirror/lang-php";
 import FileTree, { type DirEntry } from "./FileTree";
 
 // Heavy editor — split out of the initial bundle (bundle-dynamic-imports).
@@ -183,6 +185,14 @@ export default function CodePanel({
 
 	const activeContent = active ? docs[active] : undefined;
 
+	// PHP highlighting for *.php (incl. Blade). `phpLang()` treats content
+	// outside `<?...?>` as HTML, so mixed templates still parse.
+	// Non-PHP files get no language extension (plain text).
+	const extensions = useMemo(
+		() => (active?.endsWith(".php") ? [phpLang()] : []),
+		[active],
+	);
+
 	return (
 		<div className="flex min-h-[320px] flex-col border-b border-border lg:col-span-2 xl:col-span-1 xl:min-h-[540px] xl:border-r xl:border-b-0">
 			<div className="flex h-[34px] shrink-0 items-center justify-between border-b border-border px-3 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
@@ -228,6 +238,7 @@ export default function CodePanel({
 										onChange={onEdit}
 										theme="none"
 										height="100%"
+										extensions={extensions}
 										basicSetup={{
 											lineNumbers: true,
 											foldGutter: false,
