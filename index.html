@@ -2,12 +2,169 @@
 <html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>aura-vite</title>
+
+    <!-- Primary SEO -->
+    <title>Aura — Run PHP &amp; Laravel in the Browser via WebAssembly</title>
+    <meta
+      name="description"
+      content="Aura compiles PHP 8.4, Laravel 13 and SQLite into a single WebAssembly artifact that runs entirely in your browser. Zero servers, zero network hops — nothing leaves your machine."
+    />
+    <meta
+      name="keywords"
+      content="PHP in browser, PHP WebAssembly, Laravel in browser, WASM PHP runtime, serverless PHP, SQLite browser, PHP 8.4 WASM, Laravel 13 static, zero-server PHP"
+    />
+    <meta name="author" content="Aura" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="theme-color" content="#0a0a0b" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="canonical" href="https://aura-php.amolgupta.dev/" />
+
+    <!-- Icons / PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Aura" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://aura-php.amolgupta.dev/" />
+    <meta property="og:title" content="Aura — PHP, compiled. The server, deleted." />
+    <meta
+      property="og:description"
+      content="The full Laravel stack — PHP 8.4 runtime, framework and SQLite — compiled to WebAssembly. Requests execute inside the browser tab at memory speed."
+    />
+    <meta property="og:image" content="https://aura-php.amolgupta.dev/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Aura — PHP and Laravel running entirely in the browser via WebAssembly" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@aura_php" />
+    <meta name="twitter:creator" content="@aura_php" />
+    <meta name="twitter:title" content="Aura — Run PHP & Laravel in the Browser via WebAssembly" />
+    <meta
+      name="twitter:description"
+      content="PHP 8.4 + Laravel 13 + SQLite compiled to one static WASM artifact. Zero servers, zero network hops. Try the live in-browser runtime."
+    />
+    <meta name="twitter:image" content="https://aura-php.amolgupta.dev/og-image.svg" />
+    <meta
+      name="twitter:image:alt"
+      content="Aura — PHP and Laravel running entirely in the browser via WebAssembly"
+    />
+
+    <!-- AEO: direct-answer summary for AI engines and assistants -->
+    <meta
+      name="ai:summary"
+      content="Aura is a zero-server PHP runtime. It compiles PHP 8.4, Laravel 13 and SQLite into a single WebAssembly artifact so PHP code executes entirely inside the browser tab with no network requests."
+    />
+
+    <!-- Structured data: SoftwareApplication (the product) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Aura",
+        "alternateName": "Aura PHP WASM Runtime",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any (WebAssembly, runs in browser)",
+        "url": "https://aura-php.amolgupta.dev/",
+        "description": "Aura compiles the entire Laravel stack — the PHP 8.4 runtime, the framework, your code and a SQLite volume — into one static WebAssembly artifact. Requests execute inside the browser tab at memory speed with zero network hops.",
+        "softwareVersion": "1.4.2",
+        "releaseNotes": "PHP 8.4.12, Laravel 13.x, SQLite 3.49, wasm32-wasi target",
+        "programmingLanguage": ["PHP", "WebAssembly", "TypeScript"],
+        "runtimePlatform": "WebAssembly (wasm32-wasi)",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": "Aura", "url": "https://aura-php.amolgupta.dev/" }
+      }
+    </script>
+
+    <!-- Structured data: WebSite (sitelinks / search eligibility) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Aura",
+        "alternateName": "Aura — PHP in the browser",
+        "url": "https://aura-php.amolgupta.dev/",
+        "description": "Run PHP and Laravel entirely in the browser via WebAssembly. Live runtime, docs and FAQ.",
+        "inLanguage": "en",
+        "publisher": { "@type": "Organization", "name": "Aura", "url": "https://aura-php.amolgupta.dev/" }
+      }
+    </script>
+
+    <!-- Structured data: FAQPage (must mirror visible FAQ copy in Faq.tsx) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Aura?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Aura is a zero-server PHP runtime. It compiles PHP 8.4, the Laravel 13 framework, your application code and a SQLite volume into a single static WebAssembly artifact that executes entirely inside the browser tab."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does PHP run in the browser without a server?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The PHP interpreter is compiled to wasm32-wasi. When you press run, your main.php entrypoint executes inside that in-browser interpreter at memory speed — there are zero network hops and no backend to deploy."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which PHP and Laravel versions does Aura support?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Aura ships PHP 8.4.12, Laravel 13.x and SQLite 3.49 in an ~8.9 MB compressed artifact with a ~42 MB in-browser resident set."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does my code or data leave my machine?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Execution happens locally in the browser tab via WebAssembly. Nothing is sent to a server — there is no server."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What can I build with Aura?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Prototypes, Laravel route handlers, SQLite-backed demos, PHP learning sandboxes and offline-capable tools — anything that fits a single-process PHP runtime with a local SQLite volume."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Aura free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. The in-browser runtime is free to try — open the page, launch the runtime and run PHP immediately with nothing to install."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+      <main style="font-family: system-ui, sans-serif; max-width: 640px; margin: 64px auto; padding: 0 24px;">
+        <h1>Aura — Run PHP &amp; Laravel in the Browser</h1>
+        <p>
+          Aura compiles PHP 8.4, Laravel 13 and SQLite into a single WebAssembly
+          artifact that runs entirely in your browser. Enable JavaScript to
+          launch the live runtime.
+        </p>
+      </main>
+    </noscript>
   </body>
 </html>

@@ -7,7 +7,8 @@ React + TypeScript + Vite app that runs **PHP in the browser via WebAssembly** (
 - use commands in `scripts` section from @package.json
 
 ## Architecture Notes
-- **PHP Runtime**: Initialized in `App.tsx` via `loadPHPRuntime()` + `new PHP(runtimeId)`
+- **PHP Runtime**: PHP8.4, Initialized in `App.tsx` via `loadPHPRuntime()` + `new PHP(runtimeId)`
+- **Laravel**: Version 13
 - **WASM Loading**: Custom Vite plugin `vite-plugins/force-wasm-url.ts` rewrites `.wasm` imports from `@php-wasm` to use `?url` suffix
 - **Path Alias**: `@/*` → `./src/*` (configured in tsconfig + vite.config.ts)
 - Do not import anything from `apps/` directory in `src/` folder

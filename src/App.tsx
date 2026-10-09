@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import Hero from "./components/Hero";
 import RuntimeMachine from "./components/RuntimeMachine";
+import Faq from "./components/Faq";
+import Footer from "./components/Footer";
 import { usePhp } from "./lib/hooks/usePhp";
 import useLaravel from "./lib/hooks/useLaravel";
 
@@ -21,7 +23,11 @@ function App() {
 	return (
 		<div className="min-h-screen bg-background font-sans text-foreground">
 			<Hero />
-			<RuntimeMachine php={php} filesReady={laravelBooted} />
+			<main>
+				<RuntimeMachine php={php} filesReady={laravelBooted} />
+				<Faq />
+			</main>
+			<Footer />
 		</div>
 	);
 }

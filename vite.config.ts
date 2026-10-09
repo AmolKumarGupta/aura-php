@@ -13,6 +13,28 @@ export default defineConfig({
 		babel({ presets: [reactCompilerPreset()] }),
 		forceWasmUrl(),
 	],
+	build: {
+		rolldownOptions: {
+			output: {
+				codeSplitting: {
+					groups: [
+						{
+							name: "vendor",
+							test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+						},
+						{
+							name: "ui",
+							test: /[\\/]node_modules[\\/](@uiw|@base-ui|lucide-react)[\\/]/,
+						},
+						{
+							name: "codemirror",
+							test: /[\\/]node_modules[\\/](@codemirror)[\\/]/,
+						},
+					],
+				},
+			},
+		},
+	},
 	resolve: {
 		alias: {
 			"@": path.resolve(import.meta.dirname, "./src"),

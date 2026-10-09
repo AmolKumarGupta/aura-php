@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0a0a0b"/>
+  <g opacity="0.35" fill="#863bff">
+    <circle cx="120" cy="120" r="2"/><circle cx="180" cy="120" r="2"/><circle cx="240" cy="120" r="2"/><circle cx="300" cy="120" r="2"/><circle cx="360" cy="120" r="2"/><circle cx="420" cy="120" r="2"/><circle cx="480" cy="120" r="2"/><circle cx="540" cy="120" r="2"/><circle cx="600" cy="120" r="2"/><circle cx="660" cy="120" r="2"/><circle cx="720" cy="120" r="2"/><circle cx="780" cy="120" r="2"/><circle cx="840" cy="120" r="2"/><circle cx="900" cy="120" r="2"/><circle cx="960" cy="120" r="2"/><circle cx="1020" cy="120" r="2"/><circle cx="1080" cy="120" r="2"/>
+    <circle cx="120" cy="180" r="2"/><circle cx="180" cy="180" r="2"/><circle cx="240" cy="180" r="2"/><circle cx="300" cy="180" r="2"/><circle cx="360" cy="180" r="2"/><circle cx="420" cy="180" r="2"/><circle cx="480" cy="180" r="2"/><circle cx="540" cy="180" r="2"/><circle cx="600" cy="180" r="2"/><circle cx="660" cy="180" r="2"/><circle cx="720" cy="180" r="2"/><circle cx="780" cy="180" r="2"/><circle cx="840" cy="180" r="2"/><circle cx="900" cy="180" r="2"/><circle cx="960" cy="180" r="2"/><circle cx="1020" cy="180" r="2"/><circle cx="1080" cy="180" r="2"/>
+  </g>
+  <text x="100" y="300" font-family="Georgia, serif" font-size="96" fill="#fafafa">PHP, compiled.</text>
+  <text x="100" y="400" font-family="Georgia, serif" font-style="italic" font-size="72" fill="#fafafa">The server, <tspan fill="#863bff">deleted.</tspan></text>
+  <text x="100" y="470" font-family="system-ui, sans-serif" font-size="28" fill="#a1a1aa">PHP 8.4 · Laravel 13 · SQLite — runs entirely in your browser</text>
+  <text x="100" y="540" font-family="ui-monospace, monospace" font-size="22" letter-spacing="4" fill="#71717a">AURA-PHP.AMOLGUPTA.DEV · ZERO NETWORK HOPS</text>
+</svg>

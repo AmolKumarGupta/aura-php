@@ -5,7 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 
 const STATS: [string, string][] = [
 	["runtime", "PHP 8.4.12"],
-	["framework", "Laravel 12.x"],
+	["framework", "Laravel 13.x"],
 	["storage", "SQLite 3.49"],
 	["artifact", "8.9 MB"],
 ];

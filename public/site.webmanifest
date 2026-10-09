@@ -1,0 +1,16 @@
+{
+	"name": "Aura — Run PHP & Laravel in the Browser",
+	"short_name": "Aura",
+	"description": "Zero-server PHP 8.4 + Laravel 13 runtime compiled to WebAssembly. Runs entirely in your browser.",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#0a0a0b",
+	"theme_color": "#0a0a0b",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}
