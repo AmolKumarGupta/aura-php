@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
 import { createWriteStream } from "fs";
-import { readdir, stat, readFile } from "fs/promises";
+import { readdir, stat } from "fs/promises";
 import { join, relative } from "path";
-import { pipeline } from "stream/promises";
 import { ZipArchive } from "archiver";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -40,6 +39,15 @@ async function collectFiles(dir, base) {
 	}
 
 	return files;
+}
+
+for (const requiredFile of [".env", join("database", "database.sqlite")]) {
+	try {
+		await stat(join(APP_DIR, requiredFile));
+	} catch {
+		console.error(`Missing required file: ${requiredFile} in apps/laravel-app`);
+		process.exit(1);
+	}
 }
 
 console.log("Collecting files from app/...");

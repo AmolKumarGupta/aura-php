@@ -246,14 +246,14 @@ export const ConsolePanel = memo(function ConsolePanel({
 	}, [lines.length]);
 
 	return (
-		<div className="flex min-h-[210px] flex-1 flex-col">
-			<div className="flex h-[34px] items-center justify-between border-b border-border px-3 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+		<div className="flex h-[280px] min-h-[210px] flex-col overflow-hidden">
+			<div className="flex h-[34px] shrink-0 items-center justify-between border-b border-border px-3 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
 				<span>console</span>
 				<span>laravel.log — live</span>
 			</div>
 			<div
 				id="aura-console-scroll"
-				className="flex-1 overflow-y-auto px-3 py-2.5 font-mono text-[11px] leading-[1.75]"
+				className="min-h-0 flex-1 overflow-y-auto px-3 py-2.5 font-mono text-[11px] leading-[1.75]"
 			>
 				{lines.map((l) => (
 					<div key={l.id} className="flex items-baseline gap-[11px]">
