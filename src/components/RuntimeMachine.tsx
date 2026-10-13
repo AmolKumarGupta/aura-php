@@ -6,6 +6,8 @@ import { BrowserViewport, ConsolePanel } from "./runtime/BrowserViewport";
 import { useConsoleLog } from "./runtime/useConsoleLog";
 import { useBootSimulation } from "./runtime/useBootSimulation";
 import { useRunMain } from "./runtime/useRunMain";
+import type { LaravelBootStats } from "@/lib/hooks/useLaravel";
+import type { PhpBootStats } from "@/lib/hooks/usePhp";
 
 // Static header legend — hoisted outside the component (rendering-hoist-jsx)
 // so it isn't re-created on every console line.
@@ -35,9 +37,11 @@ function FigureLegend({ reqN, avgMs }: { reqN: number; avgMs: string }) {
 const RuntimeHead = memo(function RuntimeHead({
 	booted,
 	busy,
+	phpVersion,
 }: {
 	booted: boolean;
 	busy: boolean;
+	phpVersion: string | null;
 }) {
 	return (
 		<div className="flex h-[46px] items-center justify-between border-b border-border px-4 font-mono text-[11px]">
@@ -56,7 +60,7 @@ const RuntimeHead = memo(function RuntimeHead({
 				<span className="ml-0.5 text-muted-foreground/70">v1.4.2</span>
 			</div>
 			<div className="hidden gap-[18px] text-muted-foreground sm:flex">
-				<span>php 8.4.12 · wasm32-wasi · 42 MB RSS</span>
+				<span>php {phpVersion ?? "8.4"} · wasm32-wasi</span>
 			</div>
 		</div>
 	);
@@ -89,12 +93,32 @@ const MemoCodePanel = memo(CodePanel);
 export default function RuntimeMachine({
 	php,
 	filesReady,
+	phpReady,
+	phpStats,
+	phpProgress,
+	laravelStats,
+	laravelProgress,
+	laravelStatus,
 }: {
 	php: PHP | null;
 	filesReady: boolean;
+	phpReady: boolean;
+	phpStats: PhpBootStats | null;
+	phpProgress: number;
+	laravelStats: LaravelBootStats | null;
+	laravelProgress: number;
+	laravelStatus: string;
 }) {
 	const log = useConsoleLog();
-	const boot = useBootSimulation(log);
+	const boot = useBootSimulation(log, {
+		phpReady,
+		phpStats,
+		phpProgress,
+		filesReady,
+		laravelStats,
+		laravelProgress,
+		laravelStatus,
+	});
 	const run = useRunMain(log);
 
 	const { setPhpInstance, setFilesReady, markBootReady } = run;
@@ -105,8 +129,8 @@ export default function RuntimeMachine({
 		setFilesReady(filesReady);
 	}, [filesReady, setFilesReady]);
 
-	// Flip the preview from boot → idle once the fake boot finishes.
-	// Derived from `boot.booted`, no extra state (rerender-derived-state-no-effect).
+	// Flip the preview from boot → idle once the real boot telemetry
+	// finishes. Derived from `boot.booted`, no extra state (rerender-derived-state-no-effect).
 	useEffect(() => {
 		if (boot.booted) markBootReady();
 	}, [boot.booted, markBootReady]);
@@ -122,7 +146,11 @@ export default function RuntimeMachine({
 					<FigureLegend reqN={run.reqN} avgMs={avgMs} />
 
 					<div className="overflow-hidden rounded-xl border border-border bg-card">
-						<RuntimeHead booted={boot.booted} busy={run.busy} />
+						<RuntimeHead
+							booted={boot.booted}
+							busy={run.busy}
+							phpVersion={phpStats?.phpVersion ?? null}
+						/>
 
 						<div className="grid min-h-[540px] grid-cols-1 lg:grid-cols-[1.2fr_1fr] xl:grid-cols-[2fr_1fr]">
 							<MemoCodePanel php={php} filesReady={filesReady} />

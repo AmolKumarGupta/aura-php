@@ -7,8 +7,14 @@ import { usePhp } from "./lib/hooks/usePhp";
 import useLaravel from "./lib/hooks/useLaravel";
 
 function App() {
-	const { booted, php } = usePhp();
-	const { bootLaravel, laravelBooted } = useLaravel();
+	const { booted, php, bootProgress, stats: phpStats } = usePhp();
+	const {
+		bootLaravel,
+		laravelBooted,
+		laravelBootProgress,
+		laravelBootStatus,
+		stats: laravelStats,
+	} = useLaravel();
 
 	// Boot Laravel once the WASM runtime is up. bootLaravel is stable
 	// (useCallback + init-once guard), so deps are exhaustive with no
@@ -24,7 +30,16 @@ function App() {
 		<div className="min-h-screen bg-background font-sans text-foreground">
 			<Hero />
 			<main>
-				<RuntimeMachine php={php} filesReady={laravelBooted} />
+				<RuntimeMachine
+					php={php}
+					filesReady={laravelBooted}
+					phpReady={booted}
+					phpStats={phpStats}
+					phpProgress={bootProgress}
+					laravelStats={laravelStats}
+					laravelProgress={laravelBootProgress}
+					laravelStatus={laravelBootStatus}
+				/>
 				<Faq />
 			</main>
 			<Footer />
